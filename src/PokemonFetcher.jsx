@@ -1,41 +1,45 @@
 import React, { useState, useEffect } from 'react';
-import './PokemonFetcher.css'; // Opcional: para estilos básicos
+import './PokemonFetcher.css';
 
 const PokemonFetcher = () => {
   const [pokemones, setPokemones] = useState([]);
-  const [cargando, setCargando] = useState(true);
+  const [cargando, setCargando] = useState(false);
   const [error, setError] = useState(null);
-useEffect(() => {
-    const fetchPokemones = async () => {
+  const [tipo, setTipo] = useState('fire'); // Tipo por defecto
+  const [tiposDisponibles, setTiposDisponibles] = useState([]);
+
+  // Cargar lista de tipos al inicio
+  useEffect(() => {
+    const fetchTipos = async () => {
+      const response = await fetch('https://pokeapi.co/api/v2/type');
+      const data = await response.json();
+      setTiposDisponibles(data.results.map(t => t.name));
+    };
+    fetchTipos();
+  }, []);
+
+  useEffect(() => {
+    const fetchPorTipo = async () => {
       try {
         setCargando(true);
         setError(null);
-        const fetchedPokemones = [];
-        const pokemonIds = new Set(); // Usar un Set para asegurar IDs únicos
+        const response = await fetch(`https://pokeapi.co/api/v2/type/${tipo}`);
+        const data = await response.json();
 
-        // Generar 4 IDs de Pokémon únicos aleatorios
-        while (pokemonIds.size < 8) {
-          const randomId = Math.floor(Math.random() * 898) + 1; // 898 es el número actual de Pokémon en la PokeAPI (puedes ajustarlo)
-          pokemonIds.add(randomId);
-        }
-
-        // Convertir el Set a un array para iterar
-        const idsArray = Array.from(pokemonIds);
-
-        for (const id of idsArray) {
-          const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}/`);
-          if (!response.ok) {
-            throw new Error(`Error al cargar el Pokémon con ID ${id}: ${response.statusText}`);
-          }
-          const data = await response.json();
-          fetchedPokemones.push({
-            id: data.id,
-            nombre: data.name,
-            imagen: data.sprites.front_default,
-            tipos: data.types.map(typeInfo => typeInfo.type.name),
-          });
-        }
-        setPokemones(fetchedPokemones);
+        const pokemonesTipo = data.pokemon.slice(0, 10); // Limita a 10
+        const detalles = await Promise.all(
+          pokemonesTipo.map(async (p) => {
+            const res = await fetch(p.pokemon.url);
+            const data = await res.json();
+            return {
+              id: data.id,
+              nombre: data.name,
+              imagen: data.sprites.front_default,
+              tipos: data.types.map(t => t.type.name)
+            };
+          })
+        );
+        setPokemones(detalles);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -43,28 +47,27 @@ useEffect(() => {
       }
     };
 
-    fetchPokemones();
-  }, []); // El array vacío asegura que se ejecute solo una vez al montar el componente
-
-  if (cargando) {
-    return <div className="pokemon-container">Cargando Pokémon...</div>;
-  }
-
-  if (error) {
-    return <div className="pokemon-container error">Error: {error}</div>;
-  }
+    fetchPorTipo();
+  }, [tipo]);
 
   return (
-    <div className='pokemon-container'>
-      <h2>Tus 4 Pokémon Aleatorios</h2>
-      <div className="pokemon-list"> 
+    <div>
+      <label htmlFor="tipo">Buscar por tipo:</label>
+      <select id="tipo" value={tipo} onChange={(e) => setTipo(e.target.value)}>
+        {tiposDisponibles.map(t => (
+          <option key={t} value={t}>{t}</option>
+        ))}
+      </select>
+
+      {cargando && <p>Cargando Pokémon...</p>}
+      {error && <p>Error: {error}</p>}
+
+      <div className="pokemon-container">
         {pokemones.map(pokemon => (
           <div key={pokemon.id} className="pokemon-card">
-            <h3>{pokemon.nombre.charAt(0).toUpperCase() + pokemon.nombre.slice(1)}</h3>
             <img src={pokemon.imagen} alt={pokemon.nombre} />
-            <p>
-              **Tipos:** {pokemon.tipos.map(type => type.charAt(0).toUpperCase() + type.slice(1)).join(', ')}
-            </p>
+            <h3>{pokemon.nombre}</h3>
+            <p>Tipo: {pokemon.tipos.join(', ')}</p>
           </div>
         ))}
       </div>

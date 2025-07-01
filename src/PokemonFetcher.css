@@ -1,8 +1,20 @@
+body {
+  background-image: url('Imagenes/background5.png'); /* Ruta desde public */
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-attachment: fixed;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+
 .pokemon-container {
     font-family: 'Arial', sans-serif;
     text-align: center;
     padding: 20px;
-    background-color: #c56464;
+    background-color: #FF0000;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     align-self: center;
@@ -61,7 +73,20 @@
   .pokemon-container.error {
     color: #d9534f;
     border-color: #d9534f;
-    background-color: #f2dede;
+    background-color: white;
     padding: 15px;
     border-radius: 8px;
   }
+  .pokemon-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.pokemon-card {
+  border: 1px solid #000000;
+  border-radius: 8px;
+  padding: 1rem;
+  width: 150px;
+  text-align: center;
+}
