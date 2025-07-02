@@ -1,5 +1,6 @@
+/* Fondo general */
 body {
-  background-image: url('Imagenes/background5.png'); /* Ruta desde public */
+  background-image: url('Imagenes/poke.png'); /* Ruta desde public */
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
@@ -9,84 +10,144 @@ body {
   min-height: 100vh;
 }
 
-
+/* Contenedor principal centrado y con estilo */
 .pokemon-container {
-    font-family: 'Arial', sans-serif;
-    text-align: center;
-    padding: 20px;
-    background-color: #FF0000;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    align-self: center;
-  }
-  
-  .pokemon-container h2 {
-    color: #333;
-    margin-bottom: 25px;
-  }
-  
-  .pokemon-list {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 20px;
-  }
-  
-  .pokemon-card {
-    background-color: #fff;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    padding: 15px;
-    width: 200px; /* Ancho fijo para cada tarjeta */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
-    transition: transform 0.2s ease-in-out;
-  }
-  
-  .pokemon-card:hover {
-    transform: translateY(-5px);
-  }
-  
-  .pokemon-card h3 {
-    color: #007bff;
-    margin-top: 0;
-    margin-bottom: 10px;
-    font-size: 1.3em;
-  }
-  
-  .pokemon-card img {
-    width: 120px;
-    height: 120px;
-    object-fit: contain;
-    margin-bottom: 10px;
-  }
-  
-  .pokemon-card p {
-    font-size: 0.95em;
-    color: #555;
-    margin-bottom: 5px;
-  }
-  
-  .pokemon-card p strong {
-    color: #333;
-  }
-  
-  .pokemon-container.error {
-    color: #d9534f;
-    border-color: #d9534f;
-    background-color: white;
-    padding: 15px;
-    border-radius: 8px;
-  }
-  .pokemon-container {
+  font-family: 'Arial', sans-serif;
+  text-align: center;
+  padding: 20px;
+  background-color: #0075BE;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  max-width: 1200px;
+  margin: 20px auto;
+}
+
+/* Título centrado bonito */
+.pokemon-container h2 {
+  color: #FFCB05; /* amarillo Pokémon */
+  text-shadow: 2px 2px #2a75bb; /* azul Pokémon */
+  font-family: 'Press Start 2P', cursive;
+  font-size: 24px;
+  margin-bottom: 15px;
+  animation: bounce 1s;
+}
+
+/* Animación título */
+@keyframes bounce {
+  0%   { transform: translateY(-20px); }
+  50%  { transform: translateY(10px); }
+  100% { transform: translateY(0); }
+}
+
+/* Filtro de tipos centrado debajo del título */
+.filtro-tipos {
+  margin-bottom: 20px;
+}
+
+.filtro-tipos label {
+  margin-right: 10px;
+  font-weight: bold;
+  color: white;
+}
+
+select {
+  padding: 8px 12px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+/* Lista de Pokémon en grilla centrada */
+.pokemon-list {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+}
+
+/* Tarjetas Pokémon */
+.pokemon-card {
+  background-color: #fff;
+  border: 1px solid #eb0000;
+  border-radius: 10px;
+  padding: 15px;
+  width: 200px; /* Ancho fijo para cada tarjeta */
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.pokemon-card:hover {
+  transform: scale(1.05);
+}
+
+/* Título Pokémon */
+.pokemon-card h3 {
+  color: #007bff;
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 1.3em;
+}
+
+/* Imagen Pokémon */
+.pokemon-card img {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  margin-bottom: 10px;
+}
+
+/* Tipos Pokémon */
+.pokemon-card p {
+  font-size: 0.95em;
+  color: #555;
+  margin-bottom: 5px;
+}
+
+.pokemon-card p strong {
+  color: #c90a0a;
+}
+
+/* Estado de error */
+.pokemon-container.error {
+  color: #d9534f;
+  border: 2px solid #d9534f;
+  background-color: white;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+/* Paginación centrada */
+.paginacion {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
   gap: 1rem;
 }
 
-.pokemon-card {
-  border: 1px solid #000000;
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+h1 {
+  font-family: 'Press Start 2P', cursive; /* Fuente estilo Game Boy */
+  font-size: 36px; /* Tamaño grande */
+  color: #ffffff; /* Amarillo Pokémon */
+  text-shadow:
+    2px 2px #eb0b0b, /* Contorno azul */
+    4px 4px #000;     /* Contorno negro extra */
+  -webkit-text-stroke: 1px #000000; /* Contorno azul extra para navegadores compatibles */
+  letter-spacing: 2px; /* Espaciado entre letras */
+  margin: 20px 0;
+  animation: bounce 1s;
+  display: inline-block;
+  background: rgba(0, 0, 0, 0.4); /* Fondo difuso para mejor contraste */
+  padding: 12px 24px;
   border-radius: 8px;
-  padding: 1rem;
-  width: 150px;
-  text-align: center;
+}
+
+/* Animación rebote */
+@keyframes bounce {
+  0%   { transform: translateY(-20px); }
+  50%  { transform: translateY(10px); }
+  100% { transform: translateY(0); }
 }
