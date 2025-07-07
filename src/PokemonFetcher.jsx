@@ -2,111 +2,172 @@ import React, { useState, useEffect } from 'react';
 import './PokemonFetcher.css';
 
 const PokemonFetcher = () => {
+  const [tipos, setTipos] = useState([]);
+  const [tipoSeleccionado, setTipoSeleccionado] = useState('aleatorio'); // Predeterminado
+  const [cantidadSeleccionada, setCantidadSeleccionada] = useState('10');
   const [pokemones, setPokemones] = useState([]);
-  const [cargando, setCargando] = useState(true);
+  const [cargando, setCargando] = useState(false);
   const [error, setError] = useState(null);
-  const [tipoSeleccionado, setTipoSeleccionado] = useState('todos');
-  const [tiposDisponibles, setTiposDisponibles] = useState([]);
-  const [pagina, setPagina] = useState(0); // NUEVO: control de paginación
+  const [mostrarAleatorio, setMostrarAleatorio] = useState(true);
 
-  const limit = 20; // Pokémon por página
+  useEffect(() => {
+    const fetchTipos = async () => {
+      try {
+        const response = await fetch('https://pokeapi.co/api/v2/type/');
+        if (!response.ok) throw new Error('Error al cargar los tipos');
+        const data = await response.json();
+        setTipos(data.results);
+      } catch (err) {
+        setError(err.message);
+      }
+    };
+
+    fetchTipos();
+  }, []);
+
+  const shuffleArray = (array) => {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  };
 
   useEffect(() => {
     const fetchPokemones = async () => {
       try {
         setCargando(true);
         setError(null);
+        let cantidad = cantidadSeleccionada === 'todos' ? 30 : parseInt(cantidadSeleccionada, 10);
+        const fetchedPokemones = [];
+        const ids = new Set();
 
-        const offset = pagina * limit;
-        const response = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=${limit}&offset=${offset}`);
+        if (tipoSeleccionado === 'aleatorio') {
+          while (ids.size < cantidad) {
+            const randomId = Math.floor(Math.random() * 898) + 1;
+            ids.add(randomId);
+          }
+
+          for (const id of ids) {
+            const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}/`);
+            const data = await res.json();
+            fetchedPokemones.push({
+              id: data.id,
+              nombre: data.name,
+              imagen: data.sprites.front_default,
+              tipos: data.types.map((t) => t.type.name),
+            });
+          }
+
+          setPokemones(fetchedPokemones);
+          setMostrarAleatorio(true);
+          return;
+        }
+
+        if (!tipoSeleccionado) {
+          setMostrarAleatorio(true);
+          return;
+        }
+
+        const response = await fetch(`https://pokeapi.co/api/v2/type/${tipoSeleccionado}/`);
+        if (!response.ok) throw new Error('Error al cargar los Pokémon de este tipo');
         const data = await response.json();
 
-        const pokemonData = await Promise.all(
-          data.results.map(async (pokemon) => {
-            try {
-              const res = await fetch(pokemon.url);
-              const pokeInfo = await res.json();
-              return {
-                id: pokeInfo.id,
-                nombre: pokeInfo.name,
-                imagen: pokeInfo.sprites.front_default,
-                tipos: pokeInfo.types.map(t => t.type.name),
-              };
-            } catch (err) {
-              console.error(`Error con ${pokemon.name}: ${err}`);
-              return null;
-            }
-          })
-        );
+        let listaPokemon = data.pokemon;
 
-        const filtrados = pokemonData.filter(Boolean);
-        setPokemones(filtrados);
+        if (cantidadSeleccionada === 'todos') {
+          listaPokemon = shuffleArray(listaPokemon);
+        } else {
+          listaPokemon = listaPokemon.slice(0, cantidad);
+        }
 
-        // Extraer tipos únicos
-        const tiposUnicos = new Set();
-        filtrados.forEach(p => p.tipos.forEach(t => tiposUnicos.add(t)));
-        setTiposDisponibles(['todos', ...Array.from(tiposUnicos)]);
+        const detallesPromises = listaPokemon.map(async (pokeEntry) => {
+          const res = await fetch(pokeEntry.pokemon.url);
+          const pokeData = await res.json();
+          return {
+            id: pokeData.id,
+            nombre: pokeData.name,
+            imagen: pokeData.sprites.front_default,
+            tipos: pokeData.types.map((t) => t.type.name),
+          };
+        });
+
+        const detalles = await Promise.all(detallesPromises);
+        setPokemones(detalles);
+        setMostrarAleatorio(false);
       } catch (err) {
-        setError('Error al obtener los Pokémon: ' + err.message);
+        setError(err.message);
       } finally {
         setCargando(false);
       }
     };
 
     fetchPokemones();
-  }, [pagina]); // Se vuelve a ejecutar al cambiar de página
-
-  const pokemonesFiltrados =
-    tipoSeleccionado === 'todos'
-      ? pokemones
-      : pokemones.filter(p => p.tipos.includes(tipoSeleccionado));
-
-  const siguientePagina = () => setPagina(prev => prev + 1);
-  const anteriorPagina = () => setPagina(prev => Math.max(prev - 1, 0));
-
-  if (cargando) return <div className="pokemon-container">Cargando Pokémon...</div>;
-  if (error) return <div className="pokemon-container error">{error}</div>;
+  }, [tipoSeleccionado, cantidadSeleccionada]);
 
   return (
     <div className="pokemon-container">
-      <h2>Pokémon disponibles</h2>
+      <h2>
+        {tipoSeleccionado === 'aleatorio'
+          ? 'Pokémon aleatorios'
+          : tipoSeleccionado
+          ? `Pokémon tipo ${tipoSeleccionado}`
+          : 'Conoce a tus Pokémon'}
+      </h2>
 
-      <div className="filtro-tipos">
-        <label htmlFor="tipo-select">Filtrar por tipo:</label>
+      {/* Controles */}
+      <div className="buscador">
+        <label htmlFor="tipoSelect">Selecciona un tipo: </label>
         <select
-          id="tipo-select"
+          id="tipoSelect"
           value={tipoSeleccionado}
           onChange={(e) => setTipoSeleccionado(e.target.value)}
         >
-          {tiposDisponibles.map(tipo => (
-            <option key={tipo} value={tipo}>
-              {tipo.charAt(0).toUpperCase() + tipo.slice(1)}
+          <option value="aleatorio">Aleatorio</option>
+          <option value="">-- Elige un tipo --</option>
+          {tipos.map((tipo) => (
+            <option key={tipo.name} value={tipo.name}>
+              {tipo.name.charAt(0).toUpperCase() + tipo.name.slice(1)}
             </option>
           ))}
         </select>
       </div>
 
+      <div className="buscador">
+        <label htmlFor="cantidadSelect">Cantidad de Pokémon: </label>
+        <select
+          id="cantidadSelect"
+          value={cantidadSeleccionada}
+          onChange={(e) => setCantidadSeleccionada(e.target.value)}
+        >
+          <option value="6">6</option>
+          <option value="10">10</option>
+          <option value="20">20</option>
+          <option value="todos">Todos (máx 30 aleatorios)</option>
+        </select>
+      </div>
+
+      {/* Estado de carga/error */}
+      {cargando && <div className="cargando">Cargando Pokémon...</div>}
+      {error && <div className="error">Error: {error}</div>}
+
+      {/* Lista */}
       <div className="pokemon-list">
-        {pokemonesFiltrados.map(pokemon => (
+        {pokemones.map((pokemon) => (
           <div key={pokemon.id} className="pokemon-card">
             <h3>{pokemon.nombre.charAt(0).toUpperCase() + pokemon.nombre.slice(1)}</h3>
-            <img src={pokemon.imagen} alt={pokemon.nombre} />
+            {pokemon.imagen ? (
+              <img src={pokemon.imagen} alt={pokemon.nombre} />
+            ) : (
+              <p>(Sin imagen)</p>
+            )}
             <p>
               <strong>Tipos:</strong>{' '}
-              {pokemon.tipos.map(tipo => tipo.charAt(0).toUpperCase() + tipo.slice(1)).join(', ')}
+              {pokemon.tipos.map((tipo) => tipo.charAt(0).toUpperCase() + tipo.slice(1)).join(', ')}
             </p>
           </div>
         ))}
-      </div>
-
-      <div className="paginacion">
-        <button onClick={anteriorPagina} disabled={pagina === 0}>
-          Anterior
-        </button>
-        <span>Página {pagina + 1}</span>
-        <button onClick={siguientePagina}>
-          Siguiente
-        </button>
       </div>
     </div>
   );

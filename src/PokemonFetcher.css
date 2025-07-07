@@ -17,9 +17,10 @@ body {
   padding: 20px;
   background-color: #0075BE;
   border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 8px rgb(216, 8, 8);
   max-width: 1200px;
   margin: 20px auto;
+  color: white;
 }
 
 /* Título centrado bonito */
